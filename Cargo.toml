@@ -1,0 +1,29 @@
+[package]
+name = "wp-mini-html"
+version = "0.1.0-alpha.1"
+edition = "2024"
+description = "Minimal async WP to HTML downloader | Extremely minimal."
+license = "AGPL-3.0-only"
+documentation = "https://docs.rs/wp-mini-html"
+homepage = "https://wprs.dev/mini-html"
+repository = "https://github.com/WattDownload/crate-wp-mini-html"
+authors = ["ZhiFenBL"]
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+anyhow = "1.0.100"
+askama = { version = "0.15.1", default-features = false, features = ["derive", "std"] }
+base64 = "0.22.1"
+futures = "0.3.31"
+lol_html = "2.7.1"
+quick-xml = { version = "0.39.0", features = ["serde"] }
+reqwest = { version = "0.12.28", default-features = false, features = ["rustls-tls"] }
+sanitize-filename = "0.6.0"
+thiserror = "2.0.18"
+tracing = "0.1.44"
+wp-mini = "0.2.0-alpha.2"
+zip = "7.2.0"
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+getrandom = { version = "0.3.4", features = ["wasm_js"] }

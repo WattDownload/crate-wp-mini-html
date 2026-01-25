@@ -1,0 +1,707 @@
+<!--*
+* Copyright (c) 2025. Longwang Developers.
+*
+* This code is licensed under the Wattpad Downloader (Library) - Educational Non-Commercial License [WPDL (Lib) ENCL], Version 1.0.0.
+*
+* You may obtain a copy of the license at LICENSE.md or LICENSE.txt files in the root of this project or visit https://www.wpdl.us/lib-jvm-android/license
+* -->
+
+<!DOCTYPE html>
+<style>
+
+    ::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0);
+        border-radius: 10px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background-color: #ff500a;
+        border-radius: 10px;
+        border: 2px solid #2a2a2a;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        background-color: rgba(255, 80, 10, 0.64);
+    }
+
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        background-color: rgb(245, 245, 245);
+        color: rgb(30, 30, 30);
+        font-family: "Arial", sans-serif;
+        font-size: 18px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin: 0;
+    }
+
+    #book-meta {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    #book-meta > img {
+        width: 256px;
+        height: 400px;
+    }
+
+    #book-meta h1,
+    #book-meta h3,
+    #book-meta p {
+        display: flex;
+        text-align: center;
+        font-weight: 500;
+    }
+
+    .part {
+        width: 50%;
+        padding: 20px;
+        margin-top: 40px;
+        display: flex;
+        flex-direction: column;
+        line-height: 1.5;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+    }
+
+    .part img {
+        max-width: 100%;
+    }
+
+    .avatar {
+        border-radius: 50%;
+        max-height: 45px;
+        margin-left: 5px;
+    }
+
+    .book-cover {
+        box-shadow: 1px 1px 5px 1px rgba(70, 70, 70, 0.2);
+        border-radius: 6px;
+        max-height: 400px;
+        max-width: 256px;
+    }
+
+    #top-control,
+    #bottom-control {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        position: fixed;
+        left: 0;
+        background-color: white;
+        transition: top 0.3s, bottom 0.3s;
+    }
+
+    .active {
+        display: flex !important;
+    }
+
+    #top-control.active {
+        top: 0;
+    }
+
+    #bottom-control.active {
+        bottom: 0;
+    }
+
+    #top-control {
+        top: -60px;
+        border-bottom: 1px solid #ddd;
+    }
+
+    #bottom-control {
+        flex-direction: column;
+        bottom: -60px;
+    }
+
+    #indicator {
+        width: 100%;
+        height: 4px;
+        display: flex;
+        align-items: stretch;
+        background-color: #ddd;
+    }
+
+    #indicator-bar {
+        width: 0;
+        background-color: #ff500a;
+    }
+
+
+    button {
+        padding: 10px;
+        background: 0;
+        border: 0;
+        cursor: pointer;
+        outline: 0;
+        font-size: 21px;
+    }
+
+    button:hover {
+        background-color: rgba(0, 0, 0, 0.1);
+    }
+
+    footer {
+        width: 100%;
+        padding: 10px;
+        display: flex;
+        justify-content: space-around;
+    }
+
+    footer > a {
+        color: rgb(120, 120, 120);
+    }
+
+    @media only screen and (max-width: 920px) {
+        .part {
+            width: 100%;
+        }
+    }
+
+    .shade {
+        background-color: rgb(239, 230, 218);
+        color: rgb(21, 18, 15);
+    }
+
+    .shade #top-control,
+    .shade #bottom-control {
+        background-color: rgb(253, 246, 236);
+        border-color: rgb(203, 186, 168);
+    }
+
+    .shade #indicator {
+        background-color: rgb(203, 186, 168);
+    }
+
+    .dark {
+        background-color: rgb(0, 0, 0);
+        color: rgb(230, 230, 230);
+    }
+
+    .dark #top-control,
+    .dark #bottom-control {
+        background-color: rgb(20, 20, 20);
+        border-color: rgb(70, 70, 70);
+    }
+
+    .dark #indicator {
+        background-color: rgb(70, 70, 70);
+    }
+
+</style>
+
+<style>
+    body {
+        transition: background-color 0.5s ease, color 0.5s ease;
+    }
+
+    #sidebar {
+        position: fixed;
+        right: -305px;
+        width: 300px;
+        <#--noinspection CssUnresolvedCustomProperty-->
+        height: calc(100% - var(--top-height) - var(--bottom-height));
+        background-color: #fff;
+        box-shadow: -2px 0 10px rgba(0, 0, 0, 0.5);
+        transition: right 0.3s ease-in-out, transform 0.2s ease-in-out;
+        display: flex;
+        flex-direction: column;
+        padding: 15px;
+        z-index: 1000;
+        border-top-left-radius: 12px; /* Rounded top-left */
+        border-bottom-left-radius: 12px; /* Rounded bottom-left */
+        overflow: hidden; /* Ensures content doesn't overflow */
+    }
+
+    .dark #sidebar {
+        background-color: #141414;
+        color: #e6e6e6;
+        box-shadow: -2px 0 10px rgba(255, 255, 255, 0.5);
+    }
+
+    .shade #sidebar {
+        background-color: #fdf6ec;
+        color: #15120f;
+    }
+
+
+    #sidebar.active {
+        right: 0;
+    }
+
+    #sidebar-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+        z-index: 999;
+    }
+
+    #sidebar-overlay.active {
+        opacity: 1;
+        visibility: visible;
+    }
+
+
+    .shade #sidebar ul li {
+        background-color: rgba(203, 186, 168, 0.2);
+        color: #15120f;
+    }
+
+    .shade #sidebar ul li:hover {
+        background-color: rgba(203, 186, 168, 0.4);
+    }
+
+    .shade #sidebar-overlay {
+        background: rgba(203, 186, 168, 0.5);
+    }
+
+
+    .dark #sidebar ul li {
+        background-color: rgba(255, 255, 255, 0.1);
+        color: #e6e6e6;
+    }
+
+    .dark #sidebar ul li:hover {
+        background-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .dark #sidebar-overlay {
+        background: rgba(20, 20, 20, 0.8);
+    }
+
+
+    /* Sidebar Items */
+    #sidebar ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    #sidebar ul li {
+        padding: 12px;
+        margin: 8px; /* Adds spacing between items */
+        cursor: pointer;
+        font-size: 18px;
+        border-radius: 8px; /* Rounded corners */
+        transition: background-color 0.3s ease-in-out, transform 0.2s ease-in-out;
+        text-align: center;
+        font-weight: bold;
+        background-color: rgba(25, 164, 189, 0.1); /* Light background */
+        color: #1e1e1e;
+    }
+
+
+    #sidebar ul li:hover {
+        background-color: rgba(25, 164, 189, 0.3); /* Slightly darker on hover */
+        transform: scale(1.05); /* Slight pop effect */
+    }
+
+    #chapter-list {
+        flex-grow: 1; /* Takes up the remaining space */
+        overflow-y: auto; /* Enable scrolling for the list */
+        padding-right: 5px; /* Prevents scrollbar from overlapping content */
+    }
+</style>
+
+<!DOCTYPE html>
+<html lang="{{ lang }}" dir="{{ direction }}">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ title }}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="scroll-key" content="{{ story_id }}"/>
+</head>
+<body>
+<div class="part" id="book-meta">
+    <img id="cover-image" class="book-cover" src="data:image/jpeg;base64,{{ cover }}" alt="Cover">
+
+    <h1>{{ title }}</h1>
+
+    <h3>
+        <b>Author: {{ author }}</b>
+        <img class="avatar" src="data:image/jpeg;base64,{{ avatar }}" alt="Author">
+    </h3>
+
+    <h3>
+        <b>Published: {{ published }}</b>
+    </h3>
+
+    <p>{{ description }}</p>
+</div>
+
+{% for part in parts %}
+<div class="part">
+    <h2>{{ part.title }}</h2>
+    <div>{{ part.content|safe }}</div>
+</div>
+{% endfor %}
+
+<div id="sidebar-overlay">
+    <div id="sidebar">
+        <img id="sidebar-cover-image" class="book-cover" src="data:image/jpeg;base64," alt="Sidebar Image">
+        <hr>
+        <ul id="chapter-list">
+        </ul>
+    </div>
+</div>
+
+<div id="top-control">
+    <button title="Change Font" onclick="changeFont()">🅰️</button>
+    <button title="Increase Font" onclick="changeFontSize(false)">➖</button>
+    <button title="Decrease Font" onclick="changeFontSize(true)">➕</button>
+    <button id="colormode-button" title="Change Theme" onclick="changeColorMode()">🌖</button>
+    <button id="menu-button" title="Chapters">📑</button>
+</div>
+<div id="bottom-control">
+    <div id="indicator"><span id="indicator-bar"></span></div>
+    <div style="display: flex; justify-content: space-around; width: 100%; padding: 5px;">
+        <span><b>Parts: </b>{{no_parts}}</span>
+        <span><b>Font size:&nbsp;</b><span id="font-size">18</span></span>
+    </div>
+</div>
+</body>
+</html>
+
+<script>
+    const chapters = document.querySelectorAll(".part:not(#book-meta)"); // Select all .part elements except #book-meta
+    const chapterList = document.getElementById("chapter-list");
+
+    chapterList.innerHTML = ""; // Clear existing list
+
+    chapters.forEach((chapter, index) => {
+        const chapterTitle = chapter.querySelector("h2").textContent.trim() || `Chapter <#noparse>${index + 1}</#noparse>`;
+
+        const listItem = document.createElement("li");
+        listItem.textContent = chapterTitle;
+
+        var clicked = false;
+        listItem.onclick = function () {
+            goToChapter(index + 1);
+
+            if (clicked) {
+                clicked = false;
+                return;
+            }
+
+            clicked = true;
+            setTimeout(function () {
+                if (clicked) {
+                    toggleSidebar(false);
+                }
+
+                clicked = false;
+            }, 300);
+        };
+
+        chapterList.appendChild(listItem);
+    });
+
+
+    let sourceImage = document.getElementById("cover-image");
+    let targetImage = document.getElementById("sidebar-cover-image");
+
+    // Set the source image as the target image's src
+    targetImage.src = sourceImage.src;
+
+    const sidebar = document.getElementById("sidebar");
+    const menuButton = document.getElementById("menu-button");
+    const overlay = document.getElementById("sidebar-overlay");
+    const topControl = document.getElementById("top-control");
+    const bottomControl = document.getElementById("bottom-control");
+
+    let isDragging = false;
+    let startX, currentX, sidebarWidth;
+
+    // 🟢 Function to toggle sidebar
+    function toggleSidebar(open) {
+        document.querySelector("#top-control").classList.toggle("active")
+        document.querySelector("#bottom-control").classList.toggle("active")
+        if (open) {
+            sidebar.classList.add("active");
+            overlay.classList.add("active");
+            document.body.style.overflow = "hidden";
+        } else {
+            sidebar.classList.remove("active");
+            setTimeout(() => {
+                overlay.classList.remove("active");
+                document.body.style.overflow = "";
+            }, 300); // Match the transition duration (0.3s)
+        }
+    }
+
+
+    // 🟢 Open sidebar when clicking menu button
+    menuButton.addEventListener("click", () => toggleSidebar(true));
+
+    // 🟢 Close sidebar when clicking outside
+    overlay.addEventListener("click", (event) => {
+        if (!sidebar.contains(event.target)) {
+            toggleSidebar(false);
+        }
+    });
+
+    // 🟢 Detect drag start
+    sidebar.addEventListener("touchstart", startDrag);
+    sidebar.addEventListener("mousedown", startDrag);
+
+    function startDrag(event) {
+        isDragging = true;
+        startX = event.touches ? event.touches[0].clientX : event.clientX;
+        sidebarWidth = sidebar.offsetWidth;
+    }
+
+    // 🟢 Detect dragging
+    document.addEventListener("touchmove", dragSidebar);
+    document.addEventListener("mousemove", dragSidebar);
+
+    function dragSidebar(event) {
+        if (!isDragging) return;
+        currentX = event.touches ? event.touches[0].clientX : event.clientX;
+        let translateX = currentX - startX;
+
+        if (translateX > 0) {
+            sidebar.style.transform = `translateX(<#noparse>${translateX}</#noparse>px)`;
+        }
+    }
+
+    // 🟢 Detect drag end
+    document.addEventListener("touchend", endDrag);
+    document.addEventListener("mouseup", endDrag);
+
+    function endDrag() {
+        if (!isDragging) return;
+        isDragging = false;
+
+        if (currentX - startX > sidebarWidth * 0.3) {
+            toggleSidebar(false);
+        }
+
+        sidebar.style.transform = "";
+    }
+
+    // 🟢 Update sidebar margins based on top and bottom controls
+    function updateSidebarMargins() {
+        const topHeight = topControl.offsetHeight;
+        const bottomHeight = bottomControl.offsetHeight;
+        sidebar.style.top = `<#noparse>${topHeight}</#noparse>px`;
+        sidebar.style.bottom = `<#noparse>${bottomHeight}</#noparse>px`;
+    }
+
+    // Run the function on load and window resize
+    window.addEventListener("resize", updateSidebarMargins);
+    window.addEventListener("load", updateSidebarMargins);
+
+    // Function to Update Sidebar Theme Dynamically
+    function updateSidebarTheme() {
+        if (document.body.classList.contains("shade")) {
+            sidebar.classList.add("shade");
+            overlay.classList.add("shade");
+        } else {
+            sidebar.classList.remove("shade");
+            overlay.classList.remove("shade");
+        }
+
+        if (document.body.classList.contains("dark")) {
+            sidebar.classList.add("dark");
+            overlay.classList.add("dark");
+        } else {
+            sidebar.classList.remove("dark");
+            overlay.classList.remove("dark");
+        }
+    }
+
+    // Run theme update on page load
+    updateSidebarTheme();
+
+
+    function goToChapter(index) {
+        const chapters = document.querySelectorAll(".part:not(#book-meta)");
+        if (chapters[index - 1]) {
+            chapters[index - 1].scrollIntoView({behavior: "smooth", block: "start"});
+        }
+    }
+
+    // From here the current chapter highlighter
+    // 🟢 Highlight Current Chapter in Sidebar
+    function highlightChapter(index) {
+        const chapterLinks = document.querySelectorAll("#chapter-list li");
+
+        chapterLinks.forEach((li, i) => {
+            if (i === index) {
+                li.style.backgroundColor = "#ff500a"; // Highlight color
+                li.style.color = "#fff";
+            } else {
+                li.style.backgroundColor = "";
+                li.style.color = "";
+            }
+        });
+    }
+
+    // 🟢 Detect Scroll and Update Sidebar Highlight
+    function updateHighlightedChapter() {
+        let currentIndex = 0;
+        let scrollPosition = window.scrollY + window.innerHeight * 0.3; // Offset for better accuracy
+
+        chapters.forEach((chapter, index) => {
+            if (chapter.offsetTop <= scrollPosition) {
+                currentIndex = index;
+            }
+        });
+
+        highlightChapter(currentIndex);
+    }
+
+    // Highlight initial chapter on page load
+    updateHighlightedChapter();
+</script>
+
+<script>
+    const fontList = ["Arial, sans-serif", "Verdana, sans-serif", "Cambria, serif", "cursive", "monospace"];
+
+    const scrollKey = document.querySelector('meta[name="scroll-key"]')?.content;
+    let scrollsave; // Declare in the outer scope
+
+    if (scrollKey) {
+        scrollsave = localStorage.getItem(`scrollsave_<#noparse>${scrollKey}</#noparse>`);
+    } else {
+        console.warn("No scroll key defined in the HTML.");
+    }
+
+    let fontsize = localStorage.getItem("fontsize");
+    let colormode = localStorage.getItem("colormode");
+    let font = localStorage.getItem("font");
+    const userPrefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+    if (scrollsave) {
+        window.scrollTo(0, parseInt(scrollsave));
+    }
+    if (fontsize) {
+        document.querySelector("body").style.fontSize = fontsize + "px";
+        document.querySelector("#font-size").innerHTML = fontsize.toString();
+    }
+    if (colormode && colormode === "shade") {
+        document.body.classList.add("shade");
+        document.querySelector("#colormode-button").innerHTML = "🌑";
+    } else if ((colormode && colormode === "dark") || (userPrefersDark && colormode !== "light")) {
+        document.body.classList.add("dark");
+        document.querySelector("#colormode-button").innerHTML = "💡";
+    }
+    if (font) {
+        let f = parseInt(font);
+        document.body.style.fontFamily = fontList[f];
+    }
+
+    window.addEventListener("click", (event) => {
+        if (!event.composedPath().some((el) => el.id === "top-control" || el.id === "bottom-control")) {
+            document.querySelector("#top-control").classList.toggle("active");
+            document.querySelector("#bottom-control").classList.toggle("active");
+        }
+    });
+
+    let isScrolling;
+
+    window.addEventListener("scroll", () => {
+
+        let currentScroll = Math.round(window.scrollY);
+        let maxScroll = document.body.offsetHeight - window.innerHeight
+
+        let percentScrolled = Math.round((currentScroll / maxScroll) * 100);
+        document.querySelector("#indicator-bar").style.width = percentScrolled + "%";
+
+        window.clearTimeout(isScrolling);
+
+        // Add highlighter - defined in previous script block.
+        updateHighlightedChapter();
+
+        isScrolling = setTimeout(() => {
+            localStorage.setItem(`scrollsave_<#noparse>${scrollKey}</#noparse>`, currentScroll.toString());
+        }, 80);
+
+    });
+
+    function changeFontSize(increase) {
+
+        let style = window.getComputedStyle(document.body, null).getPropertyValue("font-size");
+        let fontSize = parseFloat(style);
+        let newFontSize;
+
+        if (increase && fontSize < 28) {
+            newFontSize = fontSize + 2;
+
+        } else if (increase === false && fontSize > 14) {
+            newFontSize = fontSize - 2;
+        } else {
+            return;
+        }
+
+        document.querySelector("body").style.fontSize = newFontSize + "px";
+        document.querySelector("#font-size").innerHTML = newFontSize.toString();
+        localStorage.setItem("fontsize", newFontSize.toString());
+
+    }
+
+    function changeColorMode() {
+        document.body.style.transition = "none"; // Disable transition during fade-out
+        document.body.style.opacity = "0"; // Fade out
+
+        setTimeout(() => {
+            if (document.body.classList.contains("shade")) {
+
+                document.body.classList.remove("shade");
+                document.body.classList.add("dark");
+                localStorage.setItem("colormode", "dark");
+
+                document.querySelector("#colormode-button").innerHTML = "💡";
+
+            } else if (document.body.classList.contains("dark")) {
+
+                document.body.classList.remove("dark");
+                localStorage.setItem("colormode", "light");
+
+                document.querySelector("#colormode-button").innerHTML = "🌖";
+
+            } else {
+                document.body.classList.remove("dark");
+                document.body.classList.add("shade");
+                localStorage.setItem("colormode", "shade");
+
+                document.querySelector("#colormode-button").innerHTML = "🌑";
+
+            }
+
+            document.body.style.transition = "opacity 0.5s ease, background-color 0.5s ease, color 0.5s ease"; // Restore transition
+            document.body.style.opacity = "1"; // Fade in
+        }, 200); // Small delay for the fade effect
+    }
+
+    function changeFont() {
+
+        let currentFont = window.getComputedStyle(document.body, null).getPropertyValue("font-family");
+
+        let i = fontList.indexOf(currentFont);
+
+        if (i >= 0 && i < fontList.length - 1) {
+            document.body.style.fontFamily = fontList[i + 1];
+            localStorage.setItem("font", (i + 1).toString());
+        } else {
+            document.body.style.fontFamily = fontList[0];
+            localStorage.setItem("font", "0");
+        }
+
+    }
+</script>
