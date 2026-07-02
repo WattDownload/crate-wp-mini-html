@@ -46,46 +46,44 @@ pub(super) fn rewrite_and_clean_html(
     let output_buffer = Arc::new(Mutex::new(String::new()));
     let output_clone = Arc::clone(&output_buffer);
 
-    let mut rewriter = HtmlRewriter::new(
-        Settings {
-            element_content_handlers: vec![
-                element!("p[data-media-type='image']", |el| {
-                    el.remove_and_keep_content();
-                    Ok(())
-                }),
-                element!("*[data-p-id]", |el| {
-                    el.remove_attribute("data-p-id");
-                    Ok(())
-                }),
-                element!("br", |el| {
-                    el.replace("<br />", ContentType::Html);
-                    Ok(())
-                }),
-                element!("img", move |el| {
-                    if let Some(src) = el.get_attribute("src")
-                        && embed_images
-                            && let Some(new_src) = image_map.get(&src) {
-                                el.set_attribute("src", new_src)?;
-                            }
-
-                    // Remove unwanted data attributes from the image tag.
-                    el.remove_attribute("data-original-width");
-                    el.remove_attribute("data-original-height");
-
-                    // This part rebuilds the tag to ensure it's self-closing (e.g., <img ... />)
-                    // for XHTML compatibility in the EPUB.
-                    let mut new_tag = String::from("<img");
-                    for attr in el.attributes() {
-                        new_tag.push_str(&format!(" {}=\"{}\"", attr.name(), attr.value()));
+    let settings = Settings::new()
+        .append_element_content_handler(element!("p[data-media-type='image']", |el| {
+            el.remove_and_keep_content();
+            Ok(())
+        }))
+        .append_element_content_handler(element!("*[data-p-id]", |el| {
+            el.remove_attribute("data-p-id");
+            Ok(())
+        }))
+        .append_element_content_handler(element!("br", |el| {
+            el.replace("<br />", ContentType::Html);
+            Ok(())
+        }))
+        .append_element_content_handler(element!("img", |el| {
+            if let Some(src) = el.get_attribute("src")
+                && embed_images
+                    && let Some(new_src) = image_map.get(&src) {
+                        el.set_attribute("src", new_src)?;
                     }
-                    new_tag.push_str(" />");
 
-                    el.replace(&new_tag, ContentType::Html);
-                    Ok(())
-                }),
-            ],
-            ..Settings::default()
-        },
+            // Remove unwanted data attributes from the image tag.
+            el.remove_attribute("data-original-width");
+            el.remove_attribute("data-original-height");
+
+            // This part rebuilds the tag to ensure it's self-closing (e.g., <img ... />)
+            // for XHTML compatibility in the EPUB.
+            let mut new_tag = String::from("<img");
+            for attr in el.attributes() {
+                new_tag.push_str(&format!(" {}=\"{}\"", attr.name(), attr.value()));
+            }
+            new_tag.push_str(" />");
+
+            el.replace(&new_tag, ContentType::Html);            Ok(())
+        }));
+
+
+    let mut rewriter = HtmlRewriter::new(
+        settings,
         |c: &[u8]| {
             output_clone
                 .lock()
@@ -105,16 +103,17 @@ pub(super) fn rewrite_and_clean_html(
 pub(super) fn collect_image_urls(html: &str) -> Result<Vec<String>> {
     let urls = Arc::new(Mutex::new(Vec::new()));
     let urls_clone = Arc::clone(&urls);
+
+    let settings = Settings::new()
+        .append_element_content_handler(element!("img[src]", |el| {
+            if let Some(src) = el.get_attribute("src") {
+                urls_clone.lock().unwrap().push(src);
+            }
+            Ok(())
+        }));
+
     let mut rewriter = HtmlRewriter::new(
-        Settings {
-            element_content_handlers: vec![element!("img[src]", move |el| {
-                if let Some(src) = el.get_attribute("src") {
-                    urls_clone.lock().unwrap().push(src);
-                }
-                Ok(())
-            })],
-            ..Settings::default()
-        },
+        settings,
         |_: &[u8]| {},
     );
     rewriter.write(html.as_bytes())?;
